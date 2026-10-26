@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 
 type LabState = 'loading' | 'ready' | 'error'
-type RaceState = 'idle' | 'running' | 'success' | 'blocked'
 
 const NAV_ITEMS = [
   ['01', 'Work', '#work'],
@@ -259,59 +258,46 @@ function OpenTuneDemo() {
   )
 }
 
-function CheckoutDemo() {
-  const [requests, setRequests] = useState<RaceState[]>(Array(10).fill('idle'))
-  const [running, setRunning] = useState(false)
-  const timers = useRef<number[]>([])
-
-  useEffect(() => () => timers.current.forEach(window.clearTimeout), [])
-
-  function runRace() {
-    timers.current.forEach(window.clearTimeout)
-    setRunning(true)
-    setRequests(Array(10).fill('running'))
-    const resultOrder = [6, 1, 8, 3, 0, 9, 4, 2, 7, 5]
-    resultOrder.forEach((requestIndex, order) => {
-      const timer = window.setTimeout(() => {
-        setRequests((current) => {
-          const next = [...current]
-          next[requestIndex] = order < 3 ? 'success' : 'blocked'
-          return next
-        })
-        if (order === resultOrder.length - 1) setRunning(false)
-      }, 220 + order * 115)
-      timers.current.push(timer)
-    })
-  }
-
-  const successes = requests.filter((state) => state === 'success').length
-  const blocked = requests.filter((state) => state === 'blocked').length
+function SharedFoundationDemo() {
+  const [synced, setSynced] = useState(false)
+  const portals = ['Portal 01', 'Portal 02', 'Portal 03']
 
   return (
-    <div className="checkout-demo" aria-label="Checkout concurrency test demonstration">
+    <div className="foundation-demo" aria-label="Shared React foundation demonstration">
       <div className="demo-bar">
-        <span>INVENTORY CONTENTION / TEST 07</span>
-        <span>STOCK: 03</span>
+        <span>KOLLABHR / SHARED FOUNDATION</span>
+        <span>@KOLLAB/UI {synced ? '2.4.0' : '2.3.1'}</span>
       </div>
-      <div className="race-grid" aria-live="polite">
-        {requests.map((state, index) => (
-          <div key={index} className={`race-row race-${state}`}>
-            <span>REQ_{String(index + 1).padStart(2, '0')}</span>
-            <i />
-            <strong>
-              {state === 'idle' && 'WAITING'}
-              {state === 'running' && 'LOCKING'}
-              {state === 'success' && '201 ORDERED'}
-              {state === 'blocked' && '409 BLOCKED'}
-            </strong>
-          </div>
-        ))}
+      <div className="foundation-map">
+        <div className="foundation-package">
+          <span>ONE SOURCE</span>
+          <strong>@kollab/<br />ui</strong>
+          <ul>
+            <li>Form primitives</li>
+            <li>Validation rules</li>
+            <li>TypeScript models</li>
+            <li>Runtime setup</li>
+          </ul>
+        </div>
+        <div className="portal-list" aria-live="polite">
+          {portals.map((portal, index) => (
+            <div className={synced ? 'portal-row is-synced' : 'portal-row'} key={portal}>
+              <span>0{index + 1}</span>
+              <div>
+                <strong>{portal}</strong>
+                <small>FORM / POLICY / CONFIG</small>
+              </div>
+              <i />
+              <b>{synced ? '2.4.0' : '2.3.1'}</b>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="race-footer">
-        <p><strong>{successes}</strong> orders / <strong>{blocked}</strong> protected</p>
-        <button className="demo-action" type="button" onClick={runRace} disabled={running}>
-          <Play aria-hidden="true" />
-          {running ? 'Race in progress' : 'Run 10 checkouts'}
+      <div className="foundation-footer">
+        <p>{synced ? '3 portals aligned on one release' : 'One release ready for all portals'}</p>
+        <button className="demo-action" type="button" onClick={() => setSynced((value) => !value)}>
+          {synced ? <RefreshCw aria-hidden="true" /> : <Play aria-hidden="true" />}
+          {synced ? 'Reset release' : 'Ship shared release'}
         </button>
       </div>
     </div>
@@ -427,13 +413,12 @@ function Work() {
       <article className="project project-left" data-reveal>
         <ProjectHeader
           index="03"
-          type="Engineering exercise / Checkout service"
-          title="Correct under pressure—not only in the happy path."
-          intro="A transactional checkout and rewards service designed around retries, contention and failure. Ten checkouts can race for three units; exactly three win, and the service proves why."
-          stack="NestJS / PostgreSQL / TypeORM / Jest / Docker"
-          links={<ExternalLink href="https://github.com/sanyamtrehan/neustackapp-be-assignment" icon={<Github aria-hidden="true" />}>Read the decisions</ExternalLink>}
+          type="Product platform / KollabHR"
+          title="One shared foundation, three portals moving in sync."
+          intro="A shared React component library and TypeScript model layer across three portals. Forms, validation and runtime initialization became one maintained product surface instead of three diverging implementations."
+          stack="React / React Query / TypeScript / NestJS"
         />
-        <CheckoutDemo />
+        <SharedFoundationDemo />
       </article>
 
       <article className="project project-right project-last" data-reveal>

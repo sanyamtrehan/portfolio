@@ -6,7 +6,7 @@ The site turns real engineering outcomes into working demonstrations:
 
 - an assisted claim-review flow;
 - playable reference tones for OpenTune;
-- a deterministic checkout contention test;
+- a shared React foundation release across three product portals;
 - an HTTP range-streaming scrubber;
 - an interface-state lab for loading, success and recoverable failure.
 
