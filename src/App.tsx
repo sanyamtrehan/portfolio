@@ -82,7 +82,7 @@ function Masthead() {
 
   return (
     <header className="masthead">
-      <a className="brand" href="#top" aria-label="Sanyam Trehan, back to top">
+      <a className="brand" href="#top" aria-label="Sanyam Trehan, back to top" onClick={() => setOpen(false)}>
         <span>ST</span>
         <span className="brand-mark">/26</span>
       </a>
