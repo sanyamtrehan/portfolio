@@ -10,6 +10,8 @@ The site turns real engineering outcomes into working demonstrations:
 - an HTTP range-streaming scrubber;
 - an interface-state lab for loading, success and recoverable failure.
 
+Motion is intentionally restrained: outcome numbers count into place, editorial headlines reveal line by line, project canvases wipe on entry, and system connectors draw as they enter the viewport. All animation respects the operating system's reduced-motion preference.
+
 ## Local development
 
 ```bash

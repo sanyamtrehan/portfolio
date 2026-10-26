@@ -16,6 +16,13 @@ import {
 
 type LabState = 'loading' | 'ready' | 'error'
 
+type Metric = {
+  final: string
+  label: string
+  parts: Array<{ prefix?: string; value: number; suffix?: string }>
+  connector?: string
+}
+
 const NAV_ITEMS = [
   ['01', 'Work', '#work'],
   ['02', 'Lab', '#lab'],
@@ -23,11 +30,11 @@ const NAV_ITEMS = [
   ['04', 'Contact', '#contact'],
 ]
 
-const METRICS = [
-  { value: '~30s → <2s', label: 'Landing-page LCP' },
-  { value: '~5m → <30s', label: 'Claim review time' },
-  { value: '3 → 2', label: 'Portals → shared libraries' },
-  { value: '5+ years', label: 'Product engineering' },
+const METRICS: Metric[] = [
+  { final: '~30s → <2s', label: 'Landing-page LCP', parts: [{ prefix: '~', value: 30, suffix: 's' }, { prefix: '<', value: 2, suffix: 's' }], connector: ' → ' },
+  { final: '~5m → <30s', label: 'Claim review time', parts: [{ prefix: '~', value: 5, suffix: 'm' }, { prefix: '<', value: 30, suffix: 's' }], connector: ' → ' },
+  { final: '3 → 2', label: 'Portals → shared libraries', parts: [{ value: 3 }, { value: 2 }], connector: ' → ' },
+  { final: '5+ years', label: 'Product engineering', parts: [{ value: 5, suffix: '+ years' }] },
 ]
 
 const STRINGS = [
@@ -57,6 +64,80 @@ function useReveal() {
     targets.forEach((target) => observer.observe(target))
     return () => observer.disconnect()
   }, [])
+}
+
+function ScrollProgress() {
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    let frame = 0
+    const update = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const distance = document.documentElement.scrollHeight - window.innerHeight
+        setProgress(distance > 0 ? window.scrollY / distance : 0)
+      })
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
+  return <div className="scroll-progress" aria-hidden="true"><i style={{ transform: `scaleX(${progress})` }} /></div>
+}
+
+function MetricValue({ metric, delay }: { metric: Metric; delay: number }) {
+  const ref = useRef<HTMLElement>(null)
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    let animation = 0
+    let timer = 0
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      observer.disconnect()
+      if (reducedMotion) {
+        setProgress(1)
+        return
+      }
+      timer = window.setTimeout(() => {
+        const startedAt = performance.now()
+        const tick = (now: number) => {
+          const linear = Math.min((now - startedAt) / 1250, 1)
+          setProgress(1 - Math.pow(1 - linear, 3))
+          if (linear < 1) animation = requestAnimationFrame(tick)
+        }
+        animation = requestAnimationFrame(tick)
+      }, delay)
+    }, { threshold: 0.55 })
+    observer.observe(element)
+    return () => {
+      observer.disconnect()
+      window.clearTimeout(timer)
+      cancelAnimationFrame(animation)
+    }
+  }, [delay])
+
+  return (
+    <strong ref={ref} aria-label={metric.final}>
+      <span aria-hidden="true">
+        {metric.parts.map((part, index) => (
+          <span key={`${metric.label}-${index}`}>
+            {index > 0 && metric.connector}
+            {part.prefix}{Math.round(part.value * progress)}{part.suffix}
+          </span>
+        ))}
+      </span>
+    </strong>
+  )
 }
 
 function ExternalLink({
@@ -144,7 +225,7 @@ function Metrics() {
       {METRICS.map((metric, index) => (
         <article key={metric.label}>
           <span className="metric-index">0{index + 1}</span>
-          <strong>{metric.value}</strong>
+          <MetricValue metric={metric} delay={index * 110} />
           <p>{metric.label}</p>
         </article>
       ))}
@@ -607,6 +688,7 @@ export default function App() {
   return (
     <>
       <a className="skip-link" href="#main-content">Skip to content</a>
+      <ScrollProgress />
       <Masthead />
       <main id="main-content">
         <Hero />
